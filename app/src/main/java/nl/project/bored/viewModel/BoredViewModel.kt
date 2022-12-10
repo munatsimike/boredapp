@@ -20,15 +20,21 @@ class BoredViewModel @Inject constructor(private val boredRepository: BoredRepos
     val activity: StateFlow<NetworkState> = _activity
 
     init {
-        fetchActivity()
+        viewModelScope.launch {
+            fetchActivity()
+            collectActivity()
+        }
     }
 
-    private fun fetchActivity() {
+     private suspend fun collectActivity() {
         _activity.value = NetworkState.Loading
-        viewModelScope.launch {
-            boredRepository.getActivity().collectLatest {
-                _activity.value = NetworkState.NetworkSuccess(it)
-            }
+        boredRepository.activity.collectLatest {
+            _activity.value = NetworkState.NetworkSuccess(it)
+
         }
+    }
+
+    suspend fun fetchActivity(){
+        boredRepository.getActivity()
     }
 }
